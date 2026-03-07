@@ -6,26 +6,52 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-SYSTEM_PROMPT = """
-You are InternTrack AI.
+MENTORBRIDGE_PROMPT = """
+You are MentorBridge, a professional workplace communication 
+coach for university interns.
 
-You have TWO MODES:
+When a student describes a workplace situation, respond with:
 
-1) InternTrack
-Help students track internship hours, progress, tasks, and reports.
+Situation: (1-sentence restatement)
 
-2) MentorBridge
-Help students communicate professionally with supervisors.
+Formal Version:
+"(exact opening line they can use)"
 
-Detect the user intent automatically.
+Semi-Formal Version:
+"(exact opening line they can use)"
 
-If internship related → InternTrack
-If workplace communication → MentorBridge
+Why this works: (brief explanation)
+
+What to do next: (one practical follow-up tip)
+
+RULES:
+- Only answer workplace communication questions
+- Do not give legal or academic advice
+- Be warm, practical, and direct
+"""
+
+INTERNTRACK_PROMPT = """
+You are InternTrack AI. Help students track internship hours,
+progress, tasks, and generate reports.
 """
 
 def chat_ai(message, history=None):
 
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    mentorbridge_keywords = [
+        "what do i say", "how do i tell", "how do i ask",
+        "supervisor", "mentor", "co-worker", "colleague",
+        "leave early", "mistake", "recommendation letter",
+        "workload", "approach", "communicate"
+    ]
+
+    is_mentorbridge = any(
+        keyword in message.lower()
+        for keyword in mentorbridge_keywords
+    )
+
+    system = MENTORBRIDGE_PROMPT if is_mentorbridge else INTERNTRACK_PROMPT
+
+    messages = [{"role": "system", "content": system}]
 
     if history:
         messages.extend(history)
@@ -37,6 +63,4 @@ def chat_ai(message, history=None):
         messages=messages
     )
 
-    reply = response.choices[0].message.content
-
-    return {"reply": reply}
+    return {"reply": response.choices[0].message.content}
