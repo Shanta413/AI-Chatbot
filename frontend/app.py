@@ -79,7 +79,14 @@ if st.session_state.page == "InternTrack":
 # ── MENTORBRIDGE PAGE ─────────────────────────────────────────────────────────
 elif st.session_state.page == "MentorBridge":
 
-    st.title("MentorBridge")
+    col1, col2 = st.columns([6, 1])
+    with col1:
+        st.title("MentorBridge")
+    with col2:
+        st.write("")  # spacing
+        if st.button("🗑️ Clear", key="mb_clear"):
+            st.session_state.mentorbridge_messages = []
+            st.rerun()
     st.caption("Find the right words when approaching your supervisor or mentor.")
     st.divider()
 
@@ -102,12 +109,19 @@ elif st.session_state.page == "MentorBridge":
     for m in st.session_state.mentorbridge_messages:
         st.chat_message(m["role"]).write(m["content"])
 
+    # If the last message is from the user with no AI reply yet (e.g. from a suggestion button), fetch the response
+    if st.session_state.mentorbridge_messages and st.session_state.mentorbridge_messages[-1]["role"] == "user":
+        user_msg = st.session_state.mentorbridge_messages[-1]["content"]
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                try:
+                    res = requests.post(f"{API}/chat", json={"message": user_msg})
+                    reply = res.json()["reply"]
+                except Exception:
+                    reply = "_(Could not connect to backend. Make sure the backend is running.)_"
+                st.write(reply)
+        st.session_state.mentorbridge_messages.append({"role": "assistant", "content": reply})
+
     if user_input := st.chat_input("Describe your workplace situation...", key="mentorbridge_input"):
         st.session_state.mentorbridge_messages.append({"role": "user", "content": user_input})
-        try:
-            res = requests.post(f"{API}/chat", json={"message": user_input})
-            reply = res.json()["reply"]
-        except Exception:
-            reply = "_(Could not connect to backend. Make sure the backend is running.)_"
-        st.session_state.mentorbridge_messages.append({"role": "assistant", "content": reply})
         st.rerun()
