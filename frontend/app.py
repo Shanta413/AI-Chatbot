@@ -3,18 +3,31 @@ import requests
 
 API = "http://localhost:8001"
 
-st.set_page_config(layout="wide", page_title="InternAssist AI")
+# Helper function to send message and get AI response
+def send_message(user_input, message_list):
+    """Send a message to the API and return the AI response"""
+    message_list.append({"role": "user", "content": user_input})
+    try:
+        history = message_list[:-1]  # All messages except the one we just added
+        res = requests.post(
+            f"{API}/chat",
+            json={"message": user_input, "history": history},
+            timeout=30
+        )
+        res.raise_for_status()
+        reply = res.json()["reply"]
+    except requests.exceptions.Timeout:
+        reply = "⚠️ Request timed out. The AI is taking too long to respond."
+    except requests.exceptions.ConnectionError:
+        reply = "⚠️ Could not connect to backend. Make sure it's running on port 8001."
+    except Exception as e:
+        reply = f"⚠️ Error: {str(e)}"
+    message_list.append({"role": "assistant", "content": reply})
+    return reply
 
 # ── SIDEBAR NAV ───────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-with st.sidebar:
-    st.title("InternAssist AI")
-=======
-
-
 with st.sidebar:
     st.title("InternAssist")
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
     st.caption("CSIT349-G01")
     st.divider()
 
@@ -27,12 +40,9 @@ with st.sidebar:
     if st.button("MentorBridge", use_container_width=True):
         st.session_state.page = "MentorBridge"
 
-<<<<<<< HEAD
     if st.button("Report Writer", use_container_width=True):
         st.session_state.page = "Report Writer"
 
-=======
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
 # ── INTERNTRACK PAGE ──────────────────────────────────────────────────────────
 if st.session_state.page == "InternTrack":
 
@@ -73,46 +83,22 @@ if st.session_state.page == "InternTrack":
         ]
         for i, s in enumerate(it_suggestions):
             if st.button(s, key=f"it_btn_{i}", use_container_width=True):
-                st.session_state.interntrack_messages.append({"role": "user", "content": s})
-<<<<<<< HEAD
-=======
-                try:
-                    res = requests.post(f"{API}/chat", json={"message": s})
-                    reply = res.json()["reply"]
-                except Exception:
-                    reply = "_(Could not connect to backend. Make sure the backend is running.)_"
-                st.session_state.interntrack_messages.append({"role": "assistant", "content": reply})
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
+                with st.spinner("Thinking..."):
+                    send_message(s, st.session_state.interntrack_messages)
                 st.rerun()
 
     for m in st.session_state.interntrack_messages:
         st.chat_message(m["role"]).write(m["content"])
 
     if user_input := st.chat_input("Ask something about your internship hours...", key="interntrack_input"):
-        st.session_state.interntrack_messages.append({"role": "user", "content": user_input})
-        try:
-            res = requests.post(f"{API}/chat", json={"message": user_input})
-            reply = res.json()["reply"]
-        except Exception:
-            reply = "_(Could not connect to backend. Make sure the backend is running.)_"
-        st.session_state.interntrack_messages.append({"role": "assistant", "content": reply})
+        with st.spinner("Thinking..."):
+            send_message(user_input, st.session_state.interntrack_messages)
         st.rerun()
 
 # ── MENTORBRIDGE PAGE ─────────────────────────────────────────────────────────
 elif st.session_state.page == "MentorBridge":
 
-<<<<<<< HEAD
     st.title("MentorBridge")
-=======
-    col1, col2 = st.columns([6, 1])
-    with col1:
-        st.title("MentorBridge")
-    with col2:
-        st.write("")  # spacing
-        if st.button("🗑️ Clear", key="mb_clear"):
-            st.session_state.mentorbridge_messages = []
-            st.rerun()
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
     st.caption("Find the right words when approaching your supervisor or mentor.")
     st.divider()
 
@@ -123,36 +109,22 @@ elif st.session_state.page == "MentorBridge":
         st.write("**Try one of these to get started:**")
         mb_suggestions = [
             "What do I say to Sir John to tell him I didn't fully understand the task he gave me?",
-            "What do I say to Ma'am Sarah if I need to ask permission to leave early this Friday?",
+            "What do I say to Ma'am Sarah if I need to ask permission to ask permission to leave early this Friday?",
             "What do I say to Sir Mark to admit that I made a mistake on the report he assigned me?",
             "What do I say to my supervisor if I feel like the workload is already too much for me?",
         ]
         for i, s in enumerate(mb_suggestions):
             if st.button(s, key=f"mb_btn_{i}", use_container_width=True):
-                st.session_state.mentorbridge_messages.append({"role": "user", "content": s})
-<<<<<<< HEAD
-=======
-                try:
-                    res = requests.post(f"{API}/chat", json={"message": s})
-                    reply = res.json()["reply"]
-                except Exception:
-                    reply = "_(Could not connect to backend. Make sure the backend is running.)_"
-                st.session_state.mentorbridge_messages.append({"role": "assistant", "content": reply})
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
+                with st.spinner("Thinking..."):
+                    send_message(s, st.session_state.mentorbridge_messages)
                 st.rerun()
 
     for m in st.session_state.mentorbridge_messages:
         st.chat_message(m["role"]).write(m["content"])
 
     if user_input := st.chat_input("Describe your workplace situation...", key="mentorbridge_input"):
-        st.session_state.mentorbridge_messages.append({"role": "user", "content": user_input})
-        try:
-            res = requests.post(f"{API}/chat", json={"message": user_input})
-            reply = res.json()["reply"]
-        except Exception:
-            reply = "_(Could not connect to backend. Make sure the backend is running.)_"
-        st.session_state.mentorbridge_messages.append({"role": "assistant", "content": reply})
-<<<<<<< HEAD
+        with st.spinner("Thinking..."):
+            send_message(user_input, st.session_state.mentorbridge_messages)
         st.rerun()
 
 # ── REPORT WRITER PAGE ────────────────────────────────────────────────────────
@@ -184,23 +156,30 @@ elif st.session_state.page == "Report Writer":
         if task_input.strip() == "":
             st.warning("Please enter your tasks first.")
         else:
-            message = f"Please write a {report_type} for these tasks: {task_input}"
-            try:
-                res = requests.post(f"{API}/chat", json={"message": message})
-                report_output = res.json()["reply"]
-                st.divider()
-                st.subheader("Generated Report")
-                st.markdown(report_output)
-                st.divider()
-                st.download_button(
-                    label="Download Report as .txt",
-                    data=report_output,
-                    file_name=f"{report_type.replace(' ', '_')}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
-            except Exception:
-                st.error("_(Could not connect to backend. Make sure the backend is running.)_")
-=======
-        st.rerun()
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
+            message = f"generate report. Please write a {report_type} for these tasks:\n{task_input}"
+            with st.spinner("Generating your report..."):
+                try:
+                    res = requests.post(
+                        f"{API}/chat",
+                        json={"message": message},
+                        timeout=30
+                    )
+                    res.raise_for_status()
+                    report_output = res.json()["reply"]
+                    st.divider()
+                    st.subheader("Generated Report")
+                    st.markdown(report_output)
+                    st.divider()
+                    st.download_button(
+                        label="Download Report as .txt",
+                        data=report_output,
+                        file_name=f"{report_type.replace(' ', '_')}.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
+                except requests.exceptions.Timeout:
+                    st.error("⚠️ Request timed out. The AI is taking too long to respond.")
+                except requests.exceptions.ConnectionError:
+                    st.error("⚠️ Could not connect to backend. Make sure it's running on port 8001.")
+                except Exception as e:
+                    st.error(f"⚠️ Error: {str(e)}")

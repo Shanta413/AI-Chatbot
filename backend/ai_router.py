@@ -6,7 +6,6 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-<<<<<<< HEAD
 # ── SYSTEM PROMPTS ────────────────────────────────────────────────────────────
 
 INTERNTRACK_PROMPT = """
@@ -111,9 +110,9 @@ RULES:
 - Expand short task descriptions into full proper sentences
 - Group similar tasks together
 - Never add tasks that were not mentioned by the student
-- If the student says "daily" generate a Daily Activity Report
-- If the student says "weekly" generate a Weekly Activity Report
-- If the student says "monthly" generate a Monthly Activity Report
+- If the message contains "Daily Report" generate a Daily Activity Report
+- If the message contains "Weekly Report" generate a Weekly Activity Report
+- If the message contains "Monthly Report" generate a Monthly Activity Report
 
 OUTPUT FORMAT:
 
@@ -176,63 +175,53 @@ REPORT_KEYWORDS = [
     "tasks this month", "write my report", "make my report",
     "generate report", "write a report", "create a report",
     "report for today", "report for this week",
-    "report for this month"
+    "report for this month",
+    "please write a daily",
+    "please write a weekly",
+    "please write a monthly",
+    "write a daily",
+    "write a weekly",
+    "write a monthly",
 ]
+
+# ── ROUTE DETECTION ───────────────────────────────────────────────────────────
+
+def detect_route(message: str) -> str:
+    message_lower = message.lower()
+
+    if any(k in message_lower for k in REPORT_KEYWORDS):
+        return "report"
+    elif any(k in message_lower for k in MENTORBRIDGE_KEYWORDS):
+        return "mentorbridge"
+    else:
+        return "interntrack"
 
 # ── MAIN CHAT FUNCTION ────────────────────────────────────────────────────────
 
 def chat_ai(message, history=None):
 
-    message_lower = message.lower()
+    route = detect_route(message)
 
-    is_report = any(k in message_lower for k in REPORT_KEYWORDS)
-    is_mentorbridge = any(k in message_lower for k in MENTORBRIDGE_KEYWORDS)
-
-    if is_report:
+    if route == "report":
         system = REPORT_PROMPT
-    elif is_mentorbridge:
+    elif route == "mentorbridge":
         system = MENTORBRIDGE_PROMPT
     else:
         system = INTERNTRACK_PROMPT
 
     messages = [{"role": "system", "content": system}]
-=======
-SYSTEM_PROMPT = """
-You are InternTrack AI.
-
-You have TWO MODES:
-
-1) InternTrack
-Help students track internship hours, progress, tasks, and reports.
-
-2) MentorBridge
-Help students communicate professionally with supervisors.
-
-Detect the user intent automatically.
-
-If internship related → InternTrack
-If workplace communication → MentorBridge
-"""
-
-def chat_ai(message, history=None):
-
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
 
     if history:
         messages.extend(history)
 
     messages.append({"role": "user", "content": message})
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages
+        )
+        return {"reply": response.choices[0].message.content}
 
-<<<<<<< HEAD
-    return {"reply": response.choices[0].message.content}
-=======
-    reply = response.choices[0].message.content
-
-    return {"reply": reply}
->>>>>>> d3351407c710324370e7acd129e6c3e5f904636d
+    except Exception as e:
+        return {"reply": f"Error connecting to AI: {str(e)}"}
