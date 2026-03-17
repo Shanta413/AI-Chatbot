@@ -1053,6 +1053,11 @@ def get_base_css():
     [data-testid="stChatMessage"] {
         background: transparent !important;
         padding: 0.5rem 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        gap: 0.6rem !important;
     }
     
     [data-testid="stChatMessageContent"] {
@@ -1060,12 +1065,59 @@ def get_base_css():
         border: 1px solid var(--border-color) !important;
         border-radius: 16px !important;
         padding: 1rem 1.25rem !important;
+        width: fit-content !important;
+        max-width: min(85%, 52rem) !important;
+        flex: 0 1 auto !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        margin-right: auto !important;
     }
     
-    /* ═══ USER MESSAGE ═══ */
-    [data-testid="stChatMessage"][data-testid*="user"] [data-testid="stChatMessageContent"] {
+    /* ═══ USER / ASSISTANT MESSAGE ROLES ═══ */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        flex-direction: row-reverse !important;
+        justify-content: flex-end !important;
+    }
+
+    /* Streamlit wraps message content in an extra div; align that wrapper explicitly */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) > div:last-child {
+        margin-left: 0 !important;
+        margin-right: auto !important;
+        width: auto !important;
+    }
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) > div:last-child {
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        width: auto !important;
+    }
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] {
+        margin-left: 0 !important;
+        margin-right: auto !important;
+        text-align: left !important;
+    }
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
         background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
         border: none !important;
+        color: white !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        text-align: right !important;
+    }
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] * {
+        text-align: right !important;
+    }
+
+    [data-testid="stChatMessageAvatarUser"] {
+        background: #f59e0b !important;
+        color: #1f2937 !important;
+    }
+
+    [data-testid="stChatMessageAvatarAssistant"] {
+        background: #ef4444 !important;
         color: white !important;
     }
     
