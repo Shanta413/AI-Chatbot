@@ -265,7 +265,7 @@ def chat_ai(message, history=None):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-5o",
+            model="gpt-5-mini",
             messages=messages
         )
         reply = response.choices[0].message.content
