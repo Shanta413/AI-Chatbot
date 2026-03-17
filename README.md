@@ -3,6 +3,18 @@
 An AI-powered internship tracking assistant for university students.  
 Includes three tools: **InternTrack** (hours tracking), **MentorBridge** (workplace communication), and **Report Writer** (professional activity reports).
 
+## Latest Updates
+
+- InternTrack now supports signed hour updates from chat input:
+	- `+8`, `+ 8 hours`, `-2`, `- 2 hrs`
+- Hour updates are saved to backend config automatically.
+- `Days Left` is calculated using your configured **Daily Hours**.
+- Added AI disclaimer blocks in all AI sections.
+- Chat UI now uses Messenger-style alignment:
+	- User messages on the right (orange avatar)
+	- Assistant messages on the left (red avatar)
+	- Bubble width auto-adjusts based on content.
+
 ## Tech Stack
 
 | Layer    | Technology                        |
@@ -46,20 +58,9 @@ source .venv/bin/activate
 ### 3. Install dependencies
 
 ```bash
-pip install streamlit fastapi uvicorn pymongo python-dotenv openai holidays requests
+pip install -r backend/requirements.txt
+pip install -r frontend/requirements.txt
 ```
-
-> All packages with pinned versions:
-> ```
-> streamlit==1.55.0
-> fastapi==0.135.1
-> uvicorn==0.41.0
-> pymongo==4.16.0
-> python-dotenv==1.2.2
-> openai==2.28.0
-> holidays==0.92
-> requests==2.32.5
-> ```
 
 ### 4. Create the `.env` file
 
@@ -68,7 +69,10 @@ Create a `.env` file in the **project root** (same level as this README):
 ```
 MONGO_URI=mongodb://localhost:27017
 OPENAI_API_KEY=your_openai_api_key_here
+API_BASE_URL=http://localhost:8001
 ```
+
+`API_BASE_URL` is optional and defaults to `http://localhost:8001`.
 
 > If using MongoDB Atlas, replace `MONGO_URI` with your Atlas connection string:
 > ```
@@ -99,6 +103,21 @@ streamlit run app.py
 ```
 
 Frontend runs at: `http://localhost:8501`
+
+---
+
+## InternTrack Input Behavior
+
+InternTrack accepts quick chat commands for hours updates.
+
+- Add hours: `+8 today`
+- Subtract hours: `-2 correction`
+
+Rules:
+
+- Hours are clamped between `0` and `Total Required Hours`.
+- `Days Left` updates using `ceil(remaining / daily_hours)`.
+- `Daily Hours` comes from the Configuration panel.
 
 ---
 

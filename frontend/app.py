@@ -1,4 +1,6 @@
 import os
+import re
+import math
 import streamlit as st
 import streamlit.components.v1 as components
 import requests
@@ -6,7 +8,7 @@ from datetime import datetime, date
 import time
 from styles import get_full_css
 
-API = st.secrets.get("API_BASE_URL", os.getenv("API_BASE_URL", "http://localhost:8001"))
+API = os.getenv("API_BASE_URL", "http://localhost:8001")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIGURATION
@@ -122,6 +124,57 @@ def render_progress(current, total):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+
+def render_ai_disclaimer():
+    """Render company-style AI limitation disclaimer."""
+    st.markdown(
+        """
+        <div style="margin-top: 0.75rem; padding: 0.75rem 0.9rem; border-radius: 10px;
+                    border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div style="color: var(--text-muted); font-size: 0.78rem; line-height: 1.5;">
+                Disclaimer: AI-generated responses may be inaccurate, incomplete, or outdated.
+                Please review and verify important information before using it.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def extract_hours_increment(message: str) -> int:
+    """Extract signed hour updates from a message (e.g., '+8', '- 2 hours')."""
+    match = re.search(r"([+-])\s*(\d+)\s*(?:hours?|hrs?)?\b", message.lower())
+    if not match:
+        return 0
+    sign = -1 if match.group(1) == "-" else 1
+    return sign * int(match.group(2))
+
+
+def update_hours_from_chat_message(message: str, fallback_config: dict) -> int:
+    """Update current hours from chat message if it contains signed hours and persist config."""
+    delta_hours = extract_hours_increment(message)
+    if delta_hours == 0:
+        return 0
+
+    current_config = {**fallback_config, **st.session_state.get("intern_config", {})}
+    current_hours = int(current_config.get("current_hours", 0))
+    total_hours = int(current_config.get("total_hours", max(current_hours, 0)))
+    new_hours = max(0, min(current_hours + delta_hours, total_hours))
+
+    if new_hours == current_hours:
+        return 0
+
+    current_config["current_hours"] = new_hours
+
+    try:
+        requests.post(f"{API}/save_config", json=current_config, timeout=5)
+    except Exception:
+        # Keep local state updated even if backend persistence temporarily fails.
+        pass
+
+    st.session_state.intern_config = current_config
+    return new_hours - current_hours
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
@@ -370,8 +423,8 @@ elif st.session_state.page == "InternTrack":
     render_progress(current_hours, total_hours)
     
     # Stats
-    remaining = total_hours - current_hours
-    days_left = remaining / daily_hours if daily_hours > 0 else 0
+    remaining = max(total_hours - current_hours, 0)
+    days_left = math.ceil(remaining / daily_hours) if daily_hours > 0 else 0
     
     st.markdown(f"""
     <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin: 1.5rem 0;">
@@ -421,8 +474,21 @@ elif st.session_state.page == "InternTrack":
         for i, text in enumerate(suggestions):
             with cols[i % 2]:
                 if st.button(text, key=f"sug_it_{i}", use_container_width=True):
+                    fallback_config = {
+                        "total_hours": total_hours,
+                        "current_hours": current_hours,
+                        "daily_hours": daily_hours,
+                        "start_date": str(start_date),
+                        "country": country,
+                        "working_days": days,
+                    }
+                    added_hours = update_hours_from_chat_message(text, fallback_config)
                     with st.spinner("Processing..."):
                         send_message(text, st.session_state.interntrack_messages)
+                    if added_hours > 0:
+                        st.success(f"Added {added_hours} hour(s) to your progress.")
+                    elif added_hours < 0:
+                        st.success(f"Subtracted {abs(added_hours)} hour(s) from your progress.")
                     st.rerun()
     
     # Messages
@@ -432,14 +498,29 @@ elif st.session_state.page == "InternTrack":
     
     # Input
     if user_input := st.chat_input("Ask about your hours...", key="it_input"):
+        fallback_config = {
+            "total_hours": total_hours,
+            "current_hours": current_hours,
+            "daily_hours": daily_hours,
+            "start_date": str(start_date),
+            "country": country,
+            "working_days": days,
+        }
+        added_hours = update_hours_from_chat_message(user_input, fallback_config)
         with st.spinner("Thinking..."):
             send_message(user_input, st.session_state.interntrack_messages)
+        if added_hours > 0:
+            st.success(f"Added {added_hours} hour(s) to your progress.")
+        elif added_hours < 0:
+            st.success(f"Subtracted {abs(added_hours)} hour(s) from your progress.")
         st.rerun()
     
     if st.session_state.interntrack_messages:
         if st.button("Clear Chat", key="clear_it"):
             st.session_state.interntrack_messages = []
             st.rerun()
+
+    render_ai_disclaimer()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MENTORBRIDGE PAGE
@@ -527,6 +608,8 @@ elif st.session_state.page == "MentorBridge":
         if st.button("Clear Chat", key="clear_mb"):
             st.session_state.mentorbridge_messages = []
             st.rerun()
+
+    render_ai_disclaimer()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # REPORT WRITER PAGE
@@ -722,6 +805,8 @@ elif st.session_state.page == "Report Writer":
                     st.error("Could not connect to backend. Make sure it's running.")
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
+
+    render_ai_disclaimer()
 
     if st.session_state.saved_reports:
         st.markdown('<div class="gradient-divider"></div>', unsafe_allow_html=True)
