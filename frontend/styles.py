@@ -750,7 +750,7 @@ def get_base_css():
     .theme-toggle-btn p {
         font-size: 1rem !important;
         line-height: 1 !important;
-        margin: 0 !important;
+        margin: 0 0 0 -10px !important;
         padding: 0 !important;
     }
 
