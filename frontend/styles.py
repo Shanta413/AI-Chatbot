@@ -36,33 +36,33 @@ def get_light_theme_css():
     return """
     :root {
         --bg-primary: #f8fafc;
-        --bg-secondary: #e2e8f0;
-        --bg-card: rgba(255, 255, 255, 0.95);
+        --bg-secondary: #f1f5f9;
+        --bg-card: rgba(255, 255, 255, 0.98);
         --bg-card-hover: rgba(241, 245, 249, 1);
         --accent-primary: #2563eb;
         --accent-secondary: #7c3aed;
         --accent-tertiary: #0891b2;
-        --accent-glow: rgba(37, 99, 235, 0.35);
+        --accent-glow: rgba(37, 99, 235, 0.2);
         --text-primary: #0f172a;
         --text-secondary: #334155;
-        --text-muted: #475569;
-        --border-color: rgba(37, 99, 235, 0.4);
-        --border-glow: rgba(37, 99, 235, 0.5);
-        --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-        --app-bg-gradient1: rgba(37, 99, 235, 0.06);
-        --app-bg-gradient2: rgba(124, 58, 237, 0.04);
+        --text-muted: #64748b;
+        --border-color: rgba(148, 163, 184, 0.35);
+        --border-glow: rgba(37, 99, 235, 0.25);
+        --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        --app-bg-gradient1: rgba(37, 99, 235, 0.04);
+        --app-bg-gradient2: rgba(124, 58, 237, 0.03);
         --input-bg: #ffffff;
-        --hero-bg: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-        --stat-value-gradient: linear-gradient(135deg, #0f172a, #2563eb);
-        --nav-hover-bg: rgba(37, 99, 235, 0.15);
-        --button-border: linear-gradient(135deg, #2563eb, #7c3aed);
+        --hero-bg: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        --stat-value-gradient: linear-gradient(135deg, #1e293b, #2563eb);
+        --nav-hover-bg: rgba(37, 99, 235, 0.08);
+        --button-border: linear-gradient(135deg, #93b4f5, #b8a5f0);
     }
     
-    /* Light mode specific button styling with gradient borders */
+    /* Light mode specific button styling with subtle gradient borders */
     .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
         background: white !important;
-        border: 2px solid transparent !important;
-        background-image: linear-gradient(white, white), linear-gradient(135deg, #2563eb, #7c3aed) !important;
+        border: 1.5px solid transparent !important;
+        background-image: linear-gradient(white, white), linear-gradient(135deg, #93b4f5, #b8a5f0) !important;
         background-origin: border-box !important;
         background-clip: padding-box, border-box !important;
     }
@@ -74,24 +74,24 @@ def get_light_theme_css():
         background-clip: padding-box, border-box !important;
     }
     
-    /* Input fields with gradient borders in light mode */
+    /* Input fields with subtle borders in light mode */
     .stNumberInput > div > div > input,
     .stDateInput [data-baseweb="input"],
     .stSelectbox [data-baseweb="select"] > div,
     .stMultiSelect [data-baseweb="select"] > div,
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {
-        border: 2px solid transparent !important;
-        background-image: linear-gradient(white, white), linear-gradient(135deg, #2563eb, #7c3aed) !important;
+        border: 1.5px solid transparent !important;
+        background-image: linear-gradient(white, white), linear-gradient(135deg, #93b4f5, #b8a5f0) !important;
         background-origin: border-box !important;
         background-clip: padding-box, border-box !important;
     }
     
-    /* Chat input - white inside with gradient border in light mode */
+    /* Chat input - white inside with subtle gradient border in light mode */
     [data-testid="stBottom"] [data-baseweb="textarea"],
     [data-testid="stChatInput"] [data-baseweb="textarea"] {
         background: white !important;
-        background-image: linear-gradient(white, white), linear-gradient(135deg, #2563eb, #7c3aed) !important;
+        background-image: linear-gradient(white, white), linear-gradient(135deg, #93b4f5, #b8a5f0) !important;
         background-origin: border-box !important;
         background-clip: padding-box, border-box !important;
     }
@@ -100,6 +100,30 @@ def get_light_theme_css():
     [data-testid="stChatInput"] textarea {
         background: white !important;
         color: #0f172a !important;
+    }
+
+    /* Theme toggle pill - light mode variant */
+    .theme-toggle-btn {
+        background: #e2e8f0 !important;
+        background-image: none !important;
+        border: 1px solid rgba(148, 163, 184, 0.3) !important;
+        color: #334155 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+    }
+    
+    .theme-toggle-btn:hover {
+        background: #cbd5e1 !important;
+        background-image: none !important;
+    }
+    
+    .theme-toggle-btn p {
+        color: #334155 !important;
+    }
+
+    /* Force dark text on assistant chat messages in light mode */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"],
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] * {
+        color: #1e293b !important;
     }
     """
 
@@ -681,6 +705,55 @@ def get_base_css():
         font-weight: 600;
     }
     
+    /* ═══ THEME TOGGLE PILL ═══ */
+    /* Sidebar content needs relative positioning as anchor */
+    [data-testid="stSidebarContent"] > div > div {
+        position: relative !important;
+    }
+
+    /* Position the toggle container in the upper-right corner */
+    [data-testid="stSidebarContent"] [data-testid="stElementContainer"]:has(.theme-toggle-btn) {
+        position: absolute !important;
+        top: 0.2rem !important;
+        right: 0.5rem !important;
+        z-index: 100 !important;
+        width: auto !important;
+    }
+
+    /* Also catch the .stButton wrapper inside */
+    [data-testid="stSidebarContent"] [data-testid="stElementContainer"]:has(.theme-toggle-btn) .stButton {
+        width: auto !important;
+    }
+
+    .theme-toggle-btn {
+        border-radius: 50% !important;
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(30, 41, 59, 0.3) !important;
+        backdrop-filter: blur(4px) !important;
+        border: 1px solid rgba(148, 163, 184, 0.1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .theme-toggle-btn:hover {
+        transform: scale(1.1) rotate(15deg) !important;
+        background: rgba(30, 41, 59, 0.6) !important;
+        border-color: rgba(148, 163, 184, 0.3) !important;
+    }
+
+    .theme-toggle-btn p {
+        font-size: 1rem !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     /* ═══ CHAT INTERFACE ═══ */
     .chat-container {
         background: var(--bg-card);
@@ -1111,14 +1184,31 @@ def get_base_css():
         text-align: right !important;
     }
 
+    [data-testid="stChatMessageAvatarUser"],
+    [data-testid="stChatMessageAvatarAssistant"] {
+        font-size: 0 !important;
+        color: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        background-size: contain !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        animation: avatarPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+    }
+
+    @keyframes avatarPop {
+        0% { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+        60% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+        100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
     [data-testid="stChatMessageAvatarUser"] {
-        background: #f59e0b !important;
-        color: #1f2937 !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='%23f59e0b'%3E%3Ccircle cx='32' cy='20' r='12'/%3E%3Cpath d='M10 58c0-12.15 9.85-22 22-22s22 9.85 22 22'/%3E%3C/svg%3E") !important;
     }
 
     [data-testid="stChatMessageAvatarAssistant"] {
-        background: #ef4444 !important;
-        color: white !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='%23ef4444'%3E%3Crect x='10' y='18' width='44' height='36' rx='10'/%3E%3Ccircle cx='24' cy='36' r='5.5' fill='white'/%3E%3Ccircle cx='40' cy='36' r='5.5' fill='white'/%3E%3Crect x='1' y='30' width='8' height='14' rx='4'/%3E%3Crect x='55' y='30' width='8' height='14' rx='4'/%3E%3Crect x='17' y='6' width='10' height='14' rx='5'/%3E%3Crect x='37' y='6' width='10' height='14' rx='5'/%3E%3C/svg%3E") !important;
     }
     
     /* ═══ EXPANDER ═══ */

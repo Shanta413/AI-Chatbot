@@ -191,12 +191,35 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     # Theme Toggle Button
-    theme_label = "Switch to Light Mode" if is_dark else "Switch to Dark Mode"
+    theme_label = "🌙" if is_dark else "☀️" 
     if st.button(theme_label, key="theme_toggle", use_container_width=True):
         st.session_state.theme = "light" if is_dark else "dark"
         st.rerun()
+
+    # Mark the toggle button with a CSS class for styling
+    components.html("""
+    <script>
+        function mark() {
+            const sb = window.parent.document.querySelector('[data-testid="stSidebar"]');
+            if (!sb) return false;
+            let ok = false;
+            sb.querySelectorAll('button[data-testid="stBaseButton-secondary"]').forEach(b => {
+                if (b.textContent.includes('🌙') || b.textContent.includes('☀️')) {
+                    b.classList.add('theme-toggle-btn');
+                    ok = true;
+                }
+            });
+            return ok;
+        }
+        let n = 0;
+        const iv = setInterval(() => { if (mark() || ++n > 20) clearInterval(iv); }, 100);
+    </script>
+    """, height=0)
     
     st.markdown('<div style="height: 0.5rem;"></div>', unsafe_allow_html=True)
+
+    
+    
     
     # Initialize page state
     if "page" not in st.session_state:
@@ -231,7 +254,7 @@ with st.sidebar:
     st.markdown("""
     <div class="sidebar-footer">
         <div class="footer-text">CSIT349-G01</div>
-        <div class="footer-text" style="margin-top: 4px;">© 2026 InTurn.AI</div>
+        <div class="footer-text" style="margin-top: 4px;">© Group SIX SEVEN 2026</div>
     </div>
     """, unsafe_allow_html=True)
 
